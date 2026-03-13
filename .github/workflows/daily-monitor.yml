@@ -19,12 +19,6 @@ on:
           - journeys
           - visual
 
-# Required for dorny/test-reporter. If you get "Resource not accessible by
-# integration", use Settings → Actions → General → "Read and write permissions".
-permissions:
-  contents: read
-  checks: write
-
 jobs:
   playwright-tests:
     name: Run QA Tests
@@ -79,16 +73,6 @@ jobs:
           name: screenshots-${{ github.run_number }}
           path: screenshots/
           retention-days: 30
-
-      - name: Publish Test Summary
-        uses: dorny/test-reporter@v1
-        if: always()
-        continue-on-error: true   # skip if repo has no checks: write (e.g. fork or read-only)
-        with:
-          name: Playwright Test Results
-          path: results/junit.xml
-          reporter: java-junit
-          fail-on-error: false
 
       # GitHub automatically emails you when this step fails
       - name: Fail if tests failed
