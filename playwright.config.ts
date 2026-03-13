@@ -8,6 +8,7 @@ export default defineConfig({
   reporter: [
     ['list'],                   // console output
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
+    ['github'],                 // summary on the Actions run page (when running in CI)
     ['junit', { outputFile: 'results/junit.xml' }],
   ],
 
