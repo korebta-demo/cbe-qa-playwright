@@ -1,5 +1,9 @@
 node_modules/
+dist/
+coverage/
 playwright-report/
+playwright-report-demo/
+playwright-report-live-demo/
 test-results/
 results/
 screenshots/

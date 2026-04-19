@@ -1,0 +1,99 @@
+# =============================================================================
+# CI – demo QA pipeline (unit tests + coverage + local Playwright smoke)
+# =============================================================================
+# Triggers on pushes and PRs to main. Complements the scheduled external-site
+# workflow in daily-monitor.yml: this job is self-contained and does not call
+# the live bank website for Playwright (only the local Vite demo app).
+# =============================================================================
+
+name: CI – unit tests, coverage, Playwright demo
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  quality:
+    name: Install, test, coverage, Playwright smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # -----------------------------------------------------------------------
+      # Checkout – fetch the repository so workflows can run against your code
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Node + Yarn cache – speeds up installs by reusing downloaded packages
+      # -----------------------------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: yarn
+
+      - name: Enable Yarn 1 (Classic)
+        run: corepack enable && corepack prepare yarn@1.22.22 --activate
+
+      # -----------------------------------------------------------------------
+      # Install – same dependency tree you use locally (frozen lockfile in CI)
+      # -----------------------------------------------------------------------
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # -----------------------------------------------------------------------
+      # Typecheck – fast TypeScript pass before tests (same as `yarn typecheck`)
+      # -----------------------------------------------------------------------
+      - name: TypeScript check
+        run: yarn typecheck
+
+      # -----------------------------------------------------------------------
+      # Unit tests + coverage – Vitest prints a table in the log; HTML in coverage/
+      # -----------------------------------------------------------------------
+      # Excludes the intentional demo-failure unit test so the workflow stays green.
+      - name: Run Vitest with coverage
+        run: yarn test:coverage
+
+      # -----------------------------------------------------------------------
+      # Playwright – browser smoke against the Vite app (webServer starts dev server)
+      # -----------------------------------------------------------------------
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright demo smoke tests
+        run: yarn test:demo
+
+      # -----------------------------------------------------------------------
+      # Artifacts – optional HTML reports for debugging failed runs
+      # -----------------------------------------------------------------------
+      - name: Upload coverage HTML (optional)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-html
+          path: coverage/
+          retention-days: 14
+
+      - name: Upload Playwright demo report (optional)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-demo-report
+          path: playwright-report-demo/
+          retention-days: 14
+
+      # -----------------------------------------------------------------------
+      # NOTIFY ON FAILURE (placeholder)
+      # -----------------------------------------------------------------------
+      # Replace this step later with email (e.g. SMTP action), Slack webhook,
+      # PagerDuty, etc. Keep secrets in GitHub → Settings → Secrets and variables.
+      # -----------------------------------------------------------------------
+      - name: Notify on failure (placeholder)
+        if: failure()
+        run: |
+          echo "TODO: plug in email or chat notification for failed CI runs."
+          echo "Workflow: ${{ github.workflow }}  Run: ${{ github.run_id }}"

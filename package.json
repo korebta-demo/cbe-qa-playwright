@@ -1,15 +1,41 @@
 {
   "name": "cbe-qa-playwright",
   "version": "1.0.0",
-  "description": "Automated QA monitoring for CBE external website",
+  "private": true,
+  "type": "module",
+  "description": "Demo QA workflow: sample app, Vitest, Playwright, GitHub Actions",
   "scripts": {
-    "test": "playwright test",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5173",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:ci": "vitest run --exclude tests/unit/formatCurrency.demo-intentional-failure.test.ts",
+    "test:unit": "yarn test:ci",
+    "test:unit:watch": "vitest",
+    "test:coverage": "vitest run --coverage --exclude tests/unit/formatCurrency.demo-intentional-failure.test.ts",
+    "verify:local": "yarn typecheck && yarn build && yarn test:ci && yarn test:coverage && yarn test:demo",
+    "test:e2e": "playwright test tests/demo.spec.ts -c playwright.live-demo.config.ts",
+    "test:external": "playwright test",
+    "test:demo": "playwright test --config=playwright.demo.config.ts",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
-    "codegen": "playwright codegen https://www.combanketh.et",
-    "report": "playwright show-report"
+    "codegen": "playwright codegen https://combanketh.et/home",
+    "report": "playwright show-report",
+    "report:demo": "playwright show-report playwright-report-demo"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.0"
+    "@playwright/test": "^1.44.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
   }
 }

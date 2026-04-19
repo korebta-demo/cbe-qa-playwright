@@ -1,23 +1,37 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * Default config — external regression (Chromium + mobile), excludes live-demo file.
+ *
+ *   yarn test:external
+ *
+ * Headed live demo (Chromium only, slowMo, one worker by default in that config):
+ *   npx playwright test -c playwright.live-demo.config.ts --headed
+ *
+ * Local Vite smoke:
+ *   yarn test:demo
+ */
 export default defineConfig({
   testDir: './tests',
+  // Ignore Vitest files under tests/unit/ (*.test.ts) and local Vite demo folder.
+  testIgnore: ['**/demo/**', '**/demo.spec.ts', '**/unit/**'],
   timeout: 30_000,
-  retries: 1,                   // retry once on failure before marking as failed
+  retries: 1,
   workers: 2,
   reporter: [
-    ['list'],                   // console output
+    ['list'],
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
-    ['github'],                 // summary on the Actions run page (when running in CI)
+    ['github'],
     ['junit', { outputFile: 'results/junit.xml' }],
   ],
 
   use: {
-    baseURL: 'https://www.combanketh.et',
+    baseURL: 'https://combanketh.et',
     headless: true,
-    screenshot: 'only-on-failure',   // save screenshot when a test fails
-    video: 'retain-on-failure',      // save video when a test fails
-    trace: 'retain-on-failure',      // save trace when a test fails
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
+    actionTimeout: 15_000,
   },
 
   projects: [

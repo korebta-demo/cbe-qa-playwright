@@ -32,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'yarn'
 
       - name: Enable Yarn 1 (Classic)
@@ -52,11 +52,17 @@ jobs:
         run: |
           case "${{ github.event.inputs.suite }}" in
             availability) npx playwright test tests/01-availability.spec.ts ;;
-            journeys)     npx playwright test tests/02-journeys.spec.ts ;;
+            journeys)     npx playwright test tests/02-navigation.spec.ts ;;
             visual)       npx playwright test tests/03-visual.spec.ts ;;
             *)            npx playwright test ;;
           esac
         continue-on-error: true
+
+      - name: Generate report summary
+        if: always()
+        env:
+          SUITE_LABEL: ${{ github.event.inputs.suite || 'all' }}
+        run: node scripts/ci-report-summary.js
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
@@ -73,6 +79,21 @@ jobs:
           name: screenshots-${{ github.run_number }}
           path: screenshots/
           retention-days: 30
+
+      - name: Send email with results
+        if: always() && secrets.MAIL_TO != ''
+        continue-on-error: true
+        uses: dawidd6/action-send-mail@v5
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT || '587' }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          secure: ${{ secrets.SMTP_SECURE != 'false' }}
+          subject: "Playwright QA ${{ job.status == 'success' && steps.run-tests.outcome == 'success' && '✅ Passed' || '❌ Failed' }} – CBE (${{ github.event.inputs.suite || 'all' }})"
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_FROM || secrets.SMTP_USERNAME }}
+          html_body: file://results/email-body.html
 
       # GitHub automatically emails you when this step fails
       - name: Fail if tests failed
