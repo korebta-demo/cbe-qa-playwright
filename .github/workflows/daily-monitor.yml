@@ -24,6 +24,9 @@ jobs:
     name: Run QA Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Gate for the email step: `secrets` is not allowed in that step's `if:` in some validators.
+      HAVE_MAIL_TO: ${{ secrets.MAIL_TO != '' }}
 
     steps:
       - name: Checkout repository
@@ -81,7 +84,7 @@ jobs:
           retention-days: 30
 
       - name: Send email with results
-        if: always() && secrets.MAIL_TO != ''
+        if: always() && env.HAVE_MAIL_TO == 'true'
         continue-on-error: true
         uses: dawidd6/action-send-mail@v5
         with:
