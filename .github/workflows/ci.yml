@@ -8,6 +8,10 @@
 
 name: CI – unit tests, coverage, Playwright demo
 
+env:
+  # Opt in now to avoid Node 20 deprecation issues.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 on:
   push:
     branches: [main, master]
@@ -18,20 +22,20 @@ jobs:
   quality:
     name: Install, test, coverage, Playwright smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
 
     steps:
       # -----------------------------------------------------------------------
       # Checkout – fetch the repository so workflows can run against your code
       # -----------------------------------------------------------------------
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # -----------------------------------------------------------------------
       # Node + Yarn cache – speeds up installs by reusing downloaded packages
       # -----------------------------------------------------------------------
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: yarn
@@ -62,7 +66,7 @@ jobs:
       # Playwright – browser smoke against the Vite app (webServer starts dev server)
       # -----------------------------------------------------------------------
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Run Playwright demo smoke tests
         run: yarn test:demo
@@ -71,19 +75,21 @@ jobs:
       # Artifacts – optional HTML reports for debugging failed runs
       # -----------------------------------------------------------------------
       - name: Upload coverage HTML (optional)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: coverage-html
           path: coverage/
+          if-no-files-found: ignore
           retention-days: 2
 
       - name: Upload Playwright demo report (optional)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: playwright-demo-report
           path: playwright-report-demo/
+          if-no-files-found: ignore
           retention-days: 2
 
       # -----------------------------------------------------------------------

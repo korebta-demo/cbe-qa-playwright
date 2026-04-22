@@ -1,5 +1,9 @@
 name: Daily QA Monitor – CBE Public Website
 
+env:
+  # Opt in now to avoid Node 20 deprecation issues.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 on:
   # ── Runs every day at 06:00 UTC = 09:00 Addis Ababa (EAT) ──
   schedule:
@@ -30,10 +34,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'yarn'
@@ -45,7 +49,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Install Playwright + Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Create results directory
         run: mkdir -p results screenshots
@@ -81,15 +85,16 @@ jobs:
           fi
 
       - name: Upload HTML Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: playwright-report-${{ github.run_number }}
           path: playwright-report/
+          if-no-files-found: ignore
           retention-days: 2
 
       - name: Upload one screenshot preview
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: screenshot-preview-${{ github.run_number }}
