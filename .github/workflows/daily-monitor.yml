@@ -67,21 +67,35 @@ jobs:
           SUITE_LABEL: ${{ github.event.inputs.suite || 'all' }}
         run: node scripts/ci-report-summary.js
 
+      # Keep one lightweight preview image per run for quick demo viewing.
+      - name: Prepare one screenshot preview
+        if: always()
+        run: |
+          mkdir -p results
+          first_png=$(ls screenshots/*.png 2>/dev/null | head -n 1 || true)
+          if [ -n "$first_png" ]; then
+            cp "$first_png" results/preview.png
+            echo "Prepared preview from: $first_png"
+          else
+            echo "No screenshot found; skipping preview artifact."
+          fi
+
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: playwright-report-${{ github.run_number }}
           path: playwright-report/
-          retention-days: 3
+          retention-days: 2
 
-      - name: Upload Screenshots
+      - name: Upload one screenshot preview
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
-          name: screenshots-${{ github.run_number }}
-          path: screenshots/
-          retention-days: 3
+          name: screenshot-preview-${{ github.run_number }}
+          path: results/preview.png
+          if-no-files-found: ignore
+          retention-days: 2
 
       - name: Send email with results
         if: always() && env.HAVE_MAIL_TO == 'true'
