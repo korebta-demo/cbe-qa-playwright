@@ -72,11 +72,11 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Upload coverage HTML (optional)
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: coverage-html
           path: coverage/
-          retention-days: 14
+          retention-days: 3
 
       - name: Upload Playwright demo report (optional)
         uses: actions/upload-artifact@v4
@@ -84,7 +84,7 @@ jobs:
         with:
           name: playwright-demo-report
           path: playwright-report-demo/
-          retention-days: 14
+          retention-days: 3
 
       # -----------------------------------------------------------------------
       # NOTIFY ON FAILURE (placeholder)

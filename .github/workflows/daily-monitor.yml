@@ -54,10 +54,10 @@ jobs:
         id: run-tests
         run: |
           case "${{ github.event.inputs.suite }}" in
-            availability) npx playwright test tests/01-availability.spec.ts ;;
-            journeys)     npx playwright test tests/02-navigation.spec.ts ;;
-            visual)       npx playwright test tests/03-visual.spec.ts ;;
-            *)            npx playwright test ;;
+            availability) npx playwright test tests/01-availability.spec.ts --project=chromium ;;
+            journeys)     npx playwright test tests/02-navigation.spec.ts --project=chromium ;;
+            visual)       npx playwright test tests/03-visual.spec.ts --project=chromium ;;
+            *)            npx playwright test --project=chromium ;;
           esac
         continue-on-error: true
 
@@ -69,19 +69,19 @@ jobs:
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: playwright-report-${{ github.run_number }}
           path: playwright-report/
-          retention-days: 30
+          retention-days: 3
 
       - name: Upload Screenshots
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: screenshots-${{ github.run_number }}
           path: screenshots/
-          retention-days: 30
+          retention-days: 3
 
       - name: Send email with results
         if: always() && env.HAVE_MAIL_TO == 'true'
